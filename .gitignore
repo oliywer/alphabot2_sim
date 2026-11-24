@@ -1,0 +1,13 @@
+# colcon / build artefacts (if the repo is ever cloned as a workspace root)
+build/
+install/
+log/
+
+# Python
+__pycache__/
+*.pyc
+
+# backups and editor files
+*.bak
+*~
+.vscode/
