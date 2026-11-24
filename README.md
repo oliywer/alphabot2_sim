@@ -69,7 +69,7 @@ sudo apt install -y ros-jazzy-ros-gz ros-jazzy-navigation2 ros-jazzy-nav2-bringu
   ros-jazzy-teleop-twist-keyboard ros-jazzy-rviz2 ros-jazzy-rqt-image-view
 
 mkdir -p ~/ros2_ws/src && cd ~/ros2_ws/src
-git clone https://github.com/<your-user>/alphabot2_sim.git
+git clone https://github.com/oliywer/alphabot2_sim.git
 cd ~/ros2_ws
 source /opt/ros/jazzy/setup.bash
 colcon build --symlink-install
