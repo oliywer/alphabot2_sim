@@ -1,0 +1,59 @@
+<!--
+  patrol_small_robot.xml - NavigateToPose BT tuned for the small AlphaBot2 (r = 6.5 cm)
+  in narrow office doorways (0.50 m). Based on Nav2 Jazzy
+  navigate_to_pose_w_replanning_and_recovery.xml. Changes vs. the default tree:
+
+    1. Replanning at 2 Hz instead of 1 Hz  -> reacts faster to newly mapped obstacles
+       (the map is built by SLAM while the robot drives).
+    2. Recovery actions sized for a small robot:
+         BackUp 0.10 m @ 0.05 m/s  (default 0.30 m @ 0.15 m/s - too far in a 0.5 m door)
+         Spin   0.785 rad (45 deg) (default 1.57 rad)
+         Wait   2 s                (default 5 s)
+    3. Order of escalation: clear costmaps -> back up -> spin -> wait
+       (default: clear -> spin -> wait -> back up). Backing up first gets the robot
+       off a wall/door frame before it tries to rotate in place.
+-->
+<root BTCPP_format="4" main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <RecoveryNode number_of_retries="6" name="NavigateRecovery">
+      <PipelineSequence name="NavigateWithReplanning">
+        <ControllerSelector selected_controller="{selected_controller}" default_controller="FollowPath" topic_name="controller_selector"/>
+        <PlannerSelector selected_planner="{selected_planner}" default_planner="GridBased" topic_name="planner_selector"/>
+        <RateController hz="2.0">
+          <RecoveryNode number_of_retries="1" name="ComputePathToPose">
+            <ComputePathToPose goal="{goal}" path="{path}" planner_id="{selected_planner}" error_code_id="{compute_path_error_code}"/>
+            <Sequence>
+              <WouldAPlannerRecoveryHelp error_code="{compute_path_error_code}"/>
+              <ClearEntireCostmap name="ClearGlobalCostmap-Context" service_name="global_costmap/clear_entirely_global_costmap"/>
+            </Sequence>
+          </RecoveryNode>
+        </RateController>
+        <RecoveryNode number_of_retries="1" name="FollowPath">
+          <FollowPath path="{path}" controller_id="{selected_controller}" error_code_id="{follow_path_error_code}"/>
+          <Sequence>
+            <WouldAControllerRecoveryHelp error_code="{follow_path_error_code}"/>
+            <ClearEntireCostmap name="ClearLocalCostmap-Context" service_name="local_costmap/clear_entirely_local_costmap"/>
+          </Sequence>
+        </RecoveryNode>
+      </PipelineSequence>
+      <Sequence>
+        <Fallback>
+          <WouldAControllerRecoveryHelp error_code="{follow_path_error_code}"/>
+          <WouldAPlannerRecoveryHelp error_code="{compute_path_error_code}"/>
+        </Fallback>
+        <ReactiveFallback name="RecoveryFallback">
+          <GoalUpdated/>
+          <RoundRobin name="SmallRobotRecoveryActions">
+            <Sequence name="ClearingActions">
+              <ClearEntireCostmap name="ClearLocalCostmap-Subtree" service_name="local_costmap/clear_entirely_local_costmap"/>
+              <ClearEntireCostmap name="ClearGlobalCostmap-Subtree" service_name="global_costmap/clear_entirely_global_costmap"/>
+            </Sequence>
+            <BackUp backup_dist="0.10" backup_speed="0.05" error_code_id="{backup_code_id}"/>
+            <Spin spin_dist="0.785" error_code_id="{spin_error_code}"/>
+            <Wait wait_duration="2.0"/>
+          </RoundRobin>
+        </ReactiveFallback>
+      </Sequence>
+    </RecoveryNode>
+  </BehaviorTree>
+</root>

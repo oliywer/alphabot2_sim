@@ -3,10 +3,10 @@ project(alphabot2_sim)
 
 find_package(ament_cmake REQUIRED)
 
-install(DIRECTORY urdf worlds config launch rviz
+install(DIRECTORY urdf worlds config launch rviz behavior_trees
   DESTINATION share/${PROJECT_NAME})
 
-install(PROGRAMS scripts/head_to_pantilt.py
+install(PROGRAMS scripts/head_to_pantilt.py scripts/waypoint_patrol.py
   DESTINATION lib/${PROJECT_NAME})
 
 ament_package()

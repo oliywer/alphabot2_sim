@@ -67,7 +67,7 @@ def generate_launch_description():
 
     return LaunchDescription([
         DeclareLaunchArgument('world',
-                              default_value=os.path.join(pkg, 'worlds', 'maze.sdf'),
+                              default_value=os.path.join(pkg, 'worlds', 'office.sdf'),
                               description='Full path to the SDF world'),
         DeclareLaunchArgument('lidar', default_value='true',
                               description='Add the virtual 2D lidar (needed for SLAM/Nav2)'),
